@@ -17,12 +17,10 @@ class ArticlesController < ApplicationController
     @comments = Comment.where(article_id: params[:id]).order(:created_at)
 
     reactions = Reaction.where(article_id: params[:id])
-    reaction_type_count = Hash.new(0)
+    @reaction_count = Hash.new(0)
     reactions.pluck(:reaction_type).each do |reaction|
-      reaction_type_count[reaction] += 1
+      @reaction_count[reaction] += 1
     end
-    @likes = reaction_type_count["like"]
-    @dislikes = reaction_type_count["dislike"]
 
     if user_signed_in?
       @user_reaction = reactions.pluck(:user_id, :reaction_type).select{ |ele| ele[0] == current_user.id }.dig(0,1)
@@ -38,7 +36,7 @@ class ArticlesController < ApplicationController
   def edit
   end
 
-  # POST /articles/1
+  # POST /articles/1 members
   def comment
     @comment = Comment.create(comment_params.merge(user_id: current_user.id, article_id: params[:id]))
     redirect_to article_path
@@ -47,6 +45,34 @@ class ArticlesController < ApplicationController
   def reaction
     @reaction_type = Reaction.create(reaction_params.merge(user_id: current_user.id, article_id: params[:id]))
     redirect_to article_path
+  end
+
+  # PATCH/PUT /articles/1 members
+
+  def update_reaction
+    @user_reaction = Reaction.find_by(article_id: params[:id], user_id: current_user.id)
+
+    respond_to do |format|
+      if @user_reaction.update(reaction_params)
+        format.html { redirect_to article_path, notice: "Reaction was successfully updated." }
+        format.json { render :show, status: :ok, location: @article }
+      else
+        format.html { render :edit, status: :unprocessable_entity }
+        format.json { render json: @article.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # DELETE /articles/1 members
+
+  def remove_reaction
+    @user_reaction = Reaction.find_by(article_id: params[:id], user_id: current_user.id)
+    @user_reaction.destroy
+
+    respond_to do |format|
+      format.html { redirect_to article_path, notice: "Reaction was successfully destroyed." }
+      format.json { head :no_content }
+    end
   end
 
   # POST /articles or /articles.json

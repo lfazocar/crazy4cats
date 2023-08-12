@@ -1,7 +1,11 @@
 Rails.application.routes.draw do
   resources :articles do
-    post 'comment', on: :member
-    post 'reaction', on: :member
+    member do
+      post 'comment'
+      post 'reaction'
+      patch 'reaction', to: 'articles#update_reaction'
+      delete 'reaction', to: 'articles#remove_reaction'
+    end
   end
 
     devise_for :users

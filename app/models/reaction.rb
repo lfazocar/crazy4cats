@@ -14,6 +14,6 @@ class Reaction < ApplicationRecord
   belongs_to :article
   belongs_to :user
 
-  # 0 = none, 1 = like, 2 = dislike
-  enum :reaction_type, [:no_reaction, :like, :dislike]
+  # 0 = like, 1 = dislike
+  enum :reaction_type, [:like, :dislike]
 end

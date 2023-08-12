@@ -9,14 +9,20 @@
   <%= button_to "Destroy this article", @article, method: :delete %>
 </div>
 
-Likes: <%= @likes %> <br>
-Dislikes: <%= @dislikes %> <br>
+Likes: <%= @reaction_count["like"] %> <br>
+Dislikes: <%= @reaction_count["dislike"] %> <br>
 
 <% if user_signed_in? %>
   <% if @user_reaction %>
     <p>You <%= @user_reaction %>d this article</p>
+    <% Reaction.reaction_types.keys.each do |reaction_type| %>
+      <% unless @user_reaction == reaction_type %>
+        <%= button_to reaction_type.capitalize, reaction_article_path(reaction_type: reaction_type), method: :patch %>
+      <% end %>
+    <% end %>
+    <%= button_to "Remove reaction", reaction_article_path, method: :delete %>
   <% else %>
-    <% Reaction.reaction_types.keys[1..].each do |reaction_type| %>
+    <% Reaction.reaction_types.keys.each do |reaction_type| %>
       <%= button_to reaction_type.capitalize, reaction_article_path(reaction_type: reaction_type) %>
     <% end %>
   <% end %>
