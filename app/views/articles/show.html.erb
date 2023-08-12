@@ -8,3 +8,68 @@
 
   <%= button_to "Destroy this article", @article, method: :delete %>
 </div>
+
+Likes: <%= @likes %> <br>
+Dislikes: <%= @dislikes %> <br>
+
+<% if user_signed_in? %>
+  <% if @user_reaction %>
+    <p>You <%= @user_reaction %>d this article</p>
+  <% else %>
+    <% Reaction.reaction_types.keys[1..].each do |reaction_type| %>
+      <%= button_to reaction_type.capitalize, reaction_article_path(reaction_type: reaction_type) %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<div>
+  <h2 class="mb-3">Comments</h2>
+  <% unless @comments.empty? %>
+    <% @comments.each do |comment| %>
+      <div class="card mb-3">
+        <h5 class="card-header"><strong><%= comment.user_id.nil? ? 'A deleted user' : User.find(comment.user_id).username %></strong> commented:</h5>
+        <div class="card-body">
+          <p class="card-text"><%= comment.content %></p>
+        </div>
+        <div class="card-footer">
+          <% if (Time.now - comment.created_at).round > 1.day %>
+            <%= comment.created_at.strftime("%d - %m - %Y") %>
+          <% else %>
+          <%= time_passed(comment.created_at) %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="card mb-3">
+      <div class="card-body">No one has commented yet</div>
+    </div>
+  <% end %>
+</div>
+
+<% if user_signed_in? %>
+  <%# Comment form %>
+  <%= form_with model: [@article, @article.comments.build], url: comment_article_path do |form| %>
+    <div class="mb-3">
+      <%= form.label :content, "Leave a comment", class: "form-label fs-2 fw-medium" %>
+      <%= form.text_area :content, class: "form-control", placeholder: "Your comment here...", rows: 5 %>
+    </div>
+
+    <div class="text-center mb-3">
+      <%= form.submit class: "btn btn-light" %>
+    </div>
+  <% end %>
+
+  <%# Admin section %>
+  <% if current_user.role == 'admin' %>
+    <div class="card text-center">
+      <h5 class="card-header">Admin panel</h5>
+      <div class="card-body">
+        <div class="d-flex justify-content-evenly">
+          <%= link_to "Edit this article", edit_article_path(@article), class: "btn btn-light" %>
+          <%= button_to "Destroy this article", @article, method: :delete, class: "btn btn-danger" %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>
