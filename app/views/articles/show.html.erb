@@ -33,7 +33,7 @@ Dislikes: <%= @reaction_count["dislike"] %> <br>
   <% unless @comments.empty? %>
     <% @comments.each do |comment| %>
       <div class="card mb-3">
-        <h5 class="card-header"><strong><%= comment.user_id.nil? ? 'A deleted user' : User.find(comment.user_id).username %></strong> commented:</h5>
+        <h5 class="card-header"><strong><%= comment.user_id.nil? ? 'Anonymous' : User.find(comment.user_id).username %></strong> commented:</h5>
         <div class="card-body">
           <p class="card-text"><%= comment.content %></p>
         </div>
@@ -42,6 +42,11 @@ Dislikes: <%= @reaction_count["dislike"] %> <br>
             <%= comment.created_at.strftime("%d - %m - %Y") %>
           <% else %>
           <%= time_passed(comment.created_at) %>
+          <% end %>
+          <% if user_signed_in? %>
+            <% if current_user.role == 'admin' %>
+              <%= button_to "Delete this comment", comment_article_path, params: { comment_id: comment }, method: :delete %>
+            <% end %>
           <% end %>
         </div>
       </div>
@@ -53,20 +58,32 @@ Dislikes: <%= @reaction_count["dislike"] %> <br>
   <% end %>
 </div>
 
+<% if not flash["error"].nil? %>
+  <div style="color: red">
+    <h2><%= pluralize(flash["error"].count, "error") %> prohibited this comment from being saved:</h2>
+
+    <ul>
+      <% flash["error"].each do |error| %>
+        <li><%= error %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<%# Comment form %>
+<%= form_with model: [@article, @article.comments.build], url: comment_article_path do |form| %>
+  <div class="mb-3">
+    <%= form.label :content, "Leave a comment", class: "form-label fs-2 fw-medium" %>
+    <%= form.text_area :content, class: "form-control", placeholder: "Your comment here...", rows: 5 %>
+  </div>
+
+  <div class="text-center mb-3">
+    <%= form.submit class: "btn btn-light" %>
+  </div>
+<% end %>
+
+<%# Admin section %>
 <% if user_signed_in? %>
-  <%# Comment form %>
-  <%= form_with model: [@article, @article.comments.build], url: comment_article_path do |form| %>
-    <div class="mb-3">
-      <%= form.label :content, "Leave a comment", class: "form-label fs-2 fw-medium" %>
-      <%= form.text_area :content, class: "form-control", placeholder: "Your comment here...", rows: 5 %>
-    </div>
-
-    <div class="text-center mb-3">
-      <%= form.submit class: "btn btn-light" %>
-    </div>
-  <% end %>
-
-  <%# Admin section %>
   <% if current_user.role == 'admin' %>
     <div class="card text-center">
       <h5 class="card-header">Admin panel</h5>

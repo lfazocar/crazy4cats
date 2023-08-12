@@ -2,7 +2,7 @@ class ArticlesController < ApplicationController
   before_action :set_article, only: %i[ show edit update destroy ]
 
   # Role permissions
-  before_action :authenticate_user!, except: %i[ index show ]
+  before_action :authenticate_user!, except: %i[ index show comment ]
   before_action only: %i[ edit update destroy] do
     authorize_request(["admin"])
   end
@@ -38,27 +38,38 @@ class ArticlesController < ApplicationController
 
   # POST /articles/1 members
   def comment
-    @comment = Comment.create(comment_params.merge(user_id: current_user.id, article_id: params[:id]))
-    redirect_to article_path
+    @comment = Comment.new(comment_params.merge(article_id: params[:id]))
+    @comment.user_id = current_user.id if user_signed_in?
+
+    respond_to do |format|
+      if @comment.save
+        format.html { redirect_to article_path, notice: "Comment was successfully created." }
+        format.json { redirect_to article_path(format: :json), status: :created, location: @article }
+      else
+        format.html { redirect_to article_path, flash: { error: @comment.errors.full_messages }}
+        format.json { render json: @comment.errors, status: :unprocessable_entity }
+      end
+    end
   end
 
   def reaction
-    @reaction_type = Reaction.create(reaction_params.merge(user_id: current_user.id, article_id: params[:id]))
-    redirect_to article_path
+    @reaction = Reaction.new(reaction_params.merge(user_id: current_user.id, article_id: params[:id]))
+    respond_to do |format|
+      if @reaction.save
+        format.html { redirect_to article_path, notice: "Reaction was successfully created." }
+        format.json { redirect_to article_path(format: :json), status: :ok, location: @article }
+      end
+    end
   end
 
   # PATCH/PUT /articles/1 members
 
   def update_reaction
-    @user_reaction = Reaction.find_by(article_id: params[:id], user_id: current_user.id)
-
+    @reaction = Reaction.find_by(article_id: params[:id], user_id: current_user.id)
     respond_to do |format|
-      if @user_reaction.update(reaction_params)
+      if @reaction.update(reaction_params)
         format.html { redirect_to article_path, notice: "Reaction was successfully updated." }
-        format.json { render :show, status: :ok, location: @article }
-      else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @article.errors, status: :unprocessable_entity }
+        format.json { redirect_to article_path(format: :json), status: :ok, location: @article }
       end
     end
   end
@@ -66,11 +77,21 @@ class ArticlesController < ApplicationController
   # DELETE /articles/1 members
 
   def remove_reaction
-    @user_reaction = Reaction.find_by(article_id: params[:id], user_id: current_user.id)
-    @user_reaction.destroy
+    @reaction = Reaction.find_by(article_id: params[:id], user_id: current_user.id)
+    @reaction.destroy
 
     respond_to do |format|
-      format.html { redirect_to article_path, notice: "Reaction was successfully destroyed." }
+      format.html { redirect_to article_path, notice: "Reaction was successfully removed." }
+      format.json { head :no_content }
+    end
+  end
+
+  def delete_comment
+    @comment = Comment.find(params[:comment_id])
+    @comment.destroy
+
+    respond_to do |format|
+      format.html { redirect_to article_path, notice: "Comment was successfully deleted." }
       format.json { head :no_content }
     end
   end

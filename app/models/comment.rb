@@ -12,5 +12,8 @@
 class Comment < ApplicationRecord
   # Relations
   belongs_to :article
-  belongs_to :user
+  belongs_to :user, optional: true
+
+  # Validations
+  validates :content, length: { minimum: 3 }
 end
