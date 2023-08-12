@@ -1,32 +1,59 @@
-<p style="color: green"><%= notice %></p>
-
-<%= render @article %>
-
-<div>
-  <%= link_to "Edit this article", edit_article_path(@article) %> |
-  <%= link_to "Back to articles", articles_path %>
-
-  <%= button_to "Destroy this article", @article, method: :delete %>
-</div>
-
-Likes: <%= @reaction_count["like"] %> <br>
-Dislikes: <%= @reaction_count["dislike"] %> <br>
-
-<% if user_signed_in? %>
-  <% if @user_reaction %>
-    <p>You <%= @user_reaction %>d this article</p>
-    <% Reaction.reaction_types.keys.each do |reaction_type| %>
-      <% unless @user_reaction == reaction_type %>
-        <%= button_to reaction_type.capitalize, reaction_article_path(reaction_type: reaction_type), method: :patch %>
-      <% end %>
-    <% end %>
-    <%= button_to "Remove reaction", reaction_article_path, method: :delete %>
-  <% else %>
-    <% Reaction.reaction_types.keys.each do |reaction_type| %>
-      <%= button_to reaction_type.capitalize, reaction_article_path(reaction_type: reaction_type) %>
-    <% end %>
-  <% end %>
+<% if notice %>
+  <div class="alert alert-success" role="alert">
+    <%= notice %>
+  </div>
 <% end %>
+
+<% if not flash["error"].nil? %>
+  <div class="alert alert-danger" role="alert">
+    <h2><%= pluralize(flash["error"].count, "error") %> prohibited this comment from being saved:</h2>
+
+    <ul>
+      <% flash["error"].each do |error| %>
+        <li><%= error %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<div id="<%= dom_id @article %>" class="mb-3">
+  <div class="text-center mb-3">
+    <%= image_tag @article.image, class:"img-fluid" %>
+  </div>
+  <h1><%= @article.title %></h1>
+  <h6>Written by <%= @article.user.username %> <small class="text-body-secondary"><%= @article.created_at.strftime("%d - %m - %Y")%></small></h6>
+
+  <p>
+    <%= @article.content %>
+  </p>
+
+  <p>
+    Likes: <%= @reaction_count["like"] %> | Dislikes: <%= @reaction_count["dislike"] %> <%= "| You #{@user_reaction}d this article" if @user_reaction %>
+  </p>
+
+
+  <% if user_signed_in? %>
+    <div class="d-flex justify-content-evenly mb-3">
+      <% if @user_reaction %>
+        <% Reaction.reaction_types.keys.each do |reaction_type| %>
+          <% unless @user_reaction == reaction_type %>
+            <%= button_to reaction_type.capitalize, reaction_article_path(reaction_type: reaction_type), method: :patch, class: "btn btn-light" %>
+          <% end %>
+        <% end %>
+        <%= button_to "Remove reaction", reaction_article_path, method: :delete, class: "btn btn-danger" %>
+      <% else %>
+        <% Reaction.reaction_types.keys.each do |reaction_type| %>
+          <%= button_to reaction_type.capitalize, reaction_article_path(reaction_type: reaction_type), class: "btn btn-light" %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <p>
+    <%= link_to "Back to articles", articles_path, class: "link-light" %>
+  </p>
+
+</div>
 
 <div>
   <h2 class="mb-3">Comments</h2>
@@ -37,15 +64,17 @@ Dislikes: <%= @reaction_count["dislike"] %> <br>
         <div class="card-body">
           <p class="card-text"><%= comment.content %></p>
         </div>
-        <div class="card-footer">
-          <% if (Time.now - comment.created_at).round > 1.day %>
-            <%= comment.created_at.strftime("%d - %m - %Y") %>
-          <% else %>
-          <%= time_passed(comment.created_at) %>
-          <% end %>
+        <div class="card-footer d-flex align-items-center">
+          <p class="my-0 me-auto">
+            <% if (Time.now - comment.created_at).round > 1.day %>
+              <%= comment.created_at.strftime("%d - %m - %Y") %>
+            <% else %>
+              <%= time_passed(comment.created_at) %>
+            <% end %>
+          </p>
           <% if user_signed_in? %>
             <% if current_user.role == 'admin' %>
-              <%= button_to "Delete this comment", comment_article_path, params: { comment_id: comment }, method: :delete %>
+              <%= button_to "Delete this comment", comment_article_path, params: { comment_id: comment }, method: :delete, class: "btn btn-danger" %>
             <% end %>
           <% end %>
         </div>
@@ -57,18 +86,6 @@ Dislikes: <%= @reaction_count["dislike"] %> <br>
     </div>
   <% end %>
 </div>
-
-<% if not flash["error"].nil? %>
-  <div style="color: red">
-    <h2><%= pluralize(flash["error"].count, "error") %> prohibited this comment from being saved:</h2>
-
-    <ul>
-      <% flash["error"].each do |error| %>
-        <li><%= error %></li>
-      <% end %>
-    </ul>
-  </div>
-<% end %>
 
 <%# Comment form %>
 <%= form_with model: [@article, @article.comments.build], url: comment_article_path do |form| %>

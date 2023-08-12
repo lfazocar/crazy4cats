@@ -14,7 +14,7 @@ article_amount.times do |num|
     Article.create(
         title: Faker::Creature::Cat.name,
         content: Faker::Lorem.paragraphs(number: 10).join(' '),
-        image: Faker::LoremFlickr.image(size: "300x300", search_terms: ['cats']),
+        image: Faker::LoremFlickr.image(size: "600x300", search_terms: ['cats']),
         user_id: num % 5 + 1
     )
 end
@@ -44,5 +44,5 @@ article_amount.times do |article|
     end
 end
 
-puts "Creating admin..."
-User.create(email: "admin@admin.com", password: "123456", username: "Admin", role: "admin")
+# puts "Creating admin..."
+# User.create(email: "admin@admin.com", password: "123456", username: "Admin", role: "admin")

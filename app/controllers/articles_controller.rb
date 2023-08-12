@@ -9,7 +9,7 @@ class ArticlesController < ApplicationController
 
   # GET /articles or /articles.json
   def index
-    @articles = Article.all
+    @articles = Article.all.order(created_at: :desc)
   end
 
   # GET /articles/1 or /articles/1.json
@@ -43,7 +43,7 @@ class ArticlesController < ApplicationController
 
     respond_to do |format|
       if @comment.save
-        format.html { redirect_to article_path, notice: "Comment was successfully created." }
+        format.html { redirect_to article_path, notice: "Comment created." }
         format.json { redirect_to article_path(format: :json), status: :created, location: @article }
       else
         format.html { redirect_to article_path, flash: { error: @comment.errors.full_messages }}
@@ -56,7 +56,7 @@ class ArticlesController < ApplicationController
     @reaction = Reaction.new(reaction_params.merge(user_id: current_user.id, article_id: params[:id]))
     respond_to do |format|
       if @reaction.save
-        format.html { redirect_to article_path, notice: "Reaction was successfully created." }
+        format.html { redirect_to article_path, notice: "Reaction added." }
         format.json { redirect_to article_path(format: :json), status: :ok, location: @article }
       end
     end
@@ -68,7 +68,7 @@ class ArticlesController < ApplicationController
     @reaction = Reaction.find_by(article_id: params[:id], user_id: current_user.id)
     respond_to do |format|
       if @reaction.update(reaction_params)
-        format.html { redirect_to article_path, notice: "Reaction was successfully updated." }
+        format.html { redirect_to article_path, notice: "Reaction updated." }
         format.json { redirect_to article_path(format: :json), status: :ok, location: @article }
       end
     end
@@ -81,7 +81,7 @@ class ArticlesController < ApplicationController
     @reaction.destroy
 
     respond_to do |format|
-      format.html { redirect_to article_path, notice: "Reaction was successfully removed." }
+      format.html { redirect_to article_path, notice: "Reaction removed." }
       format.json { head :no_content }
     end
   end
@@ -91,7 +91,7 @@ class ArticlesController < ApplicationController
     @comment.destroy
 
     respond_to do |format|
-      format.html { redirect_to article_path, notice: "Comment was successfully deleted." }
+      format.html { redirect_to article_path, notice: "Comment deleted." }
       format.json { head :no_content }
     end
   end
@@ -99,6 +99,7 @@ class ArticlesController < ApplicationController
   # POST /articles or /articles.json
   def create
     @article = Article.new(article_params)
+    @article.user_id = current_user.id
 
     respond_to do |format|
       if @article.save

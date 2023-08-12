@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html data-bs-theme="dark">
   <head>
-    <title>Crazy4cats</title>
+    <title>Crazy 4 Cats!</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -11,6 +11,9 @@
   </head>
 
   <body>
-    <%= yield %>
+    <%= render 'shared/navbar' %>
+    <div class="container my-3">
+      <%= yield %>
+    </div>
   </body>
 </html>
