@@ -1,0 +1,21 @@
+# == Schema Information
+#
+# Table name: reactions
+#
+#  id         :bigint           not null, primary key
+#  type       :integer
+#  article_id :bigint           not null
+#  user_id    :bigint           not null
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
+
+one:
+  type: 1
+  article: one
+  user: one
+
+two:
+  type: 1
+  article: two
+  user: two
